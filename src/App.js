@@ -1,6 +1,39 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
+import React, { Component } from 'react';
+
+import Transition from 'react-transition-group/Transition';
+import { TransitionGroup } from 'react-transition-group';
+
+const duration = 300;
+
+const defaultStyle = {
+  transition: `opacity ${duration}ms ease-in-out`,
+  opacity: 0,
+}
+
+const transitionStyles = {
+  entering: { opacity: 0 },
+  entered:  { opacity: 1 },
+};
+
+const Fade = ({ in: inProp, children }) => (
+  <Transition
+    in={inProp}
+    timeout={duration}
+    appear={true}
+    mountOnEnter={true}
+    unmountOnExit={true}
+  >
+    {(state) => (
+      <div style={{
+        ...defaultStyle,
+        ...transitionStyles[state]
+      }}>
+        {children}
+      </div>
+    )}
+  </Transition>
+);
 
 class TodoInput extends Component {
 
@@ -31,21 +64,21 @@ class TodoInput extends Component {
 
   render() {
     return (
-      <div className="todo-input-container">
-        <input
-          className="todo-input"
-          onChange={this.handleChange}
-          value={this.state.value}
-        />
-        <button
-          className="todo-button"
-          onClick={this.handleSubmit}
-        >
-          Add
-        </button>
-      </div>
-    )
 
+        <div className="todo-input-container">
+          <input
+            className="todo-input"
+            onChange={this.handleChange}
+            value={this.state.value}
+          />
+          <button
+            className="todo-button"
+            onClick={this.handleSubmit}
+          >
+            Add
+          </button>
+        </div>
+    );
   }
 }
 
@@ -111,19 +144,24 @@ class TodoList extends Component {
           </div>
         </div>
         <div className="todo-list">
-          {todos.length ? todos.map(todo => (
-              <TodoItem
-                label={todo.label}
-                completed={todo.completed}
-                onRemoveClick={this.props.remove.bind(null, todo.id)}
-                onToggleClick={this.props.toggle.bind(null, todo.id)}
-              />
-            )) : (
-              <div className="todo-item todo-item--empty">
-                Nothing in this list
-              </div>
-            )
-          }
+          {todos.length ? (
+            <TransitionGroup>
+              {todos.map(todo => (
+                <Fade in={true} timeout={800} key={todo.id}>
+                  <TodoItem
+                    label={todo.label}
+                    completed={todo.completed}
+                    onRemoveClick={this.props.remove.bind(null, todo.id)}
+                    onToggleClick={this.props.toggle.bind(null, todo.id)}
+                  />
+                </Fade>
+            ))}
+            </TransitionGroup>
+          ) : (
+            <div className="todo-item todo-item--empty">
+              Nothing in this list
+            </div>
+          )}
         </div>
       </div>
     );
@@ -131,25 +169,27 @@ class TodoList extends Component {
 }
 
 const TodoItem = (props) => (
-  <div className={`todo-item ${props.completed ? 'todo-item--completed' : ''}`}>
-    <div className="todo-item-label">
-      {props.label}
+  <Fade in={true} timeout={800}>
+    <div className={`todo-item ${props.completed ? 'todo-item--completed' : ''}`}>
+      <div className="todo-item-label">
+        {props.label}
+      </div>
+      <div>
+        <button
+          className="todo-button"
+          onClick={props.onToggleClick}
+        >
+          x
+        </button>
+        <button
+          className="todo-button"
+          onClick={props.onRemoveClick}
+        >
+          -
+        </button>
+      </div>
     </div>
-    <div>
-      <button
-        className="todo-button"
-        onClick={props.onToggleClick}
-      >
-        x
-      </button>
-      <button
-        className="todo-button"
-        onClick={props.onRemoveClick}
-      >
-        -
-      </button>
-    </div>
-  </div>
+  </Fade>
 )
 
 const TodoCounter = ({ count }) => (
